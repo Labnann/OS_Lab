@@ -2,31 +2,48 @@
 #include <unistd.h>
 #include <stdio.h>
 
+int count;
+int sequence[1000] = {0};
 
-void myTurn(void *arg){
-    for(int i = 0; i<10; i++)
+
+int fibonacci(int n){
+    if (n == 0)
+        return 0;
+    if (n == 1)
+        return 1;
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+
+
+
+void* buildFibonacci(void *arg){
+    for(int i = 0; i<count; i++)
     {
-       sleep(1);
-       printf("Turn of 1\n");
+      sequence[i] = fibonacci(i);
     }
     return NULL;
     
 }
 
-void yourTurn(){
-    for(int i = 0; i<3; i++)
-    {
-        sleep(1);
-        printf("Turn of 2\n");
-    }
-    
-}
+
 
 void main(){
     pthread_t newthread;
 
-    pthread_create(&newthread,NULL,myTurn,NULL);
-    //myTurn();
-    yourTurn();
+     printf("Fibonacci count?\n");
+    scanf("%d", &count);
+    pthread_create(&newthread,NULL,buildFibonacci,NULL);
+    
     pthread_join(newthread,NULL);
+
+
+
+    for(int i = 0; i<count; i++){
+        printf("%d ",sequence[i]);
+    }
+
+    
+
+    
 }
