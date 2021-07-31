@@ -1,7 +1,5 @@
 #include <pthread.h>
-#include <unistd.h>
 #include <stdio.h>
-#include <math.h>
 
 int count;
 
