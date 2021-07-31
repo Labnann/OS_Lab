@@ -17,7 +17,7 @@ int fibonacci(int n)
         return 0;
     if (n == 1)
         return 1;
-    return (n - 1) + (n - 2);
+    return fibonacci(n - 1) + fibonacci(n - 2);
 }
 
 int main()
