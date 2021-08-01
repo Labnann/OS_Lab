@@ -18,7 +18,7 @@ void * runBarberShop(void* p_customer_id){
     
     sem_wait(&is_barber_sleeping);
     number_of_chairs++;
-    printf("Customer %d is gets served\n",customer_id);
+    printf("Customer %d gets served\n",customer_id);
 
     serveCount++;
     sem_post(&is_barber_sleeping);
