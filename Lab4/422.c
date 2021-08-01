@@ -4,7 +4,6 @@
 
 int count;
 int sequence[1000] = {0};
-
 sem_t semaphore;
 
 
