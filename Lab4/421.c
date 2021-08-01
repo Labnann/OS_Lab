@@ -10,34 +10,40 @@
 
 #define CHOPSTICK_AVAILABLE 0
 #define CHOPSTICK_UNAVAILABLE 1
+#define TOTAL_CHOPSTICKS  4
 
-sem_t semaphore;
+sem_t eatingQuota;
+sem_t chopstick_semaphores[PHILOSOPHER_COUNT-1];
 
 int philosopher_states[5] = {0};
-int chopstick_status[5] = {0};
 
-void *routine(void *p_philosopher_id)
+void *doPhilosophing(void *p_philosopher_id)
 {
 
     while (1)
     {
-
-        sem_wait(&semaphore);
+        //WILLIAM STALLING
+        //
         int current_philosopher_id = *(int *)p_philosopher_id;
+        sem_wait(&eatingQuota);
 
-        if (chopstick_status[current_philosopher_id] == CHOPSTICK_AVAILABLE && chopstick_status[(current_philosopher_id + 1) % PHILOSOPHER_COUNT] == CHOPSTICK_AVAILABLE)
-        {
-            chopstick_status[current_philosopher_id] = CHOPSTICK_UNAVAILABLE;
-            chopstick_status[(current_philosopher_id + 1) % PHILOSOPHER_COUNT] = CHOPSTICK_UNAVAILABLE;
+      
+        printf("Philosopher %d is Picking the forks\n", current_philosopher_id);
+        sem_wait(&chopstick_semaphores[current_philosopher_id]);
+        printf("Philosopher %d is Piced up the left fork\n", current_philosopher_id);
+        sem_wait(&chopstick_semaphores[(current_philosopher_id+1)%(PHILOSOPHER_COUNT)]);
+        printf("Philosopher %d is Piced up the right fork\n", current_philosopher_id);
 
-            printf("Philosopher %d is Eating\n", current_philosopher_id);
+         printf("Philosopher %d is Eating\n", current_philosopher_id);
 
-            chopstick_status[current_philosopher_id] = CHOPSTICK_AVAILABLE;
-            chopstick_status[(current_philosopher_id + 1) % PHILOSOPHER_COUNT] = CHOPSTICK_AVAILABLE;
-        }
+        sem_post(&chopstick_semaphores[current_philosopher_id]);
+        sem_post(&chopstick_semaphores[(current_philosopher_id+1)%(PHILOSOPHER_COUNT)]);
 
-        printf("PHILOSOPHER %d is thinking\n", current_philosopher_id);
-        sem_post(&semaphore);
+        sem_post(&eatingQuota);
+
+    
+         printf("PHILOSOPHER %d is thinking\n", current_philosopher_id);
+        
     }
 }
 
@@ -45,13 +51,17 @@ int main(int argc, char *argv[])
 {
     pthread_t philosophers[PHILOSOPHER_COUNT];
 
-    sem_init(&semaphore, 0, PHILOSOPHER_COUNT - 1);
+    sem_init(&eatingQuota, 0, PHILOSOPHER_COUNT - 1);
+
+    for(int i=0; i<5; i++){
+        sem_init(&chopstick_semaphores[i],0,1);
+    }
 
     for (int i = 0; i < PHILOSOPHER_COUNT; i++)
     {
         int *p_philospher_id = malloc(sizeof(int));
         *p_philospher_id = i;
-        if (pthread_create(&philosophers[i], NULL, &routine, p_philospher_id) != 0)
+        if (pthread_create(&philosophers[i], NULL, &doPhilosophing, p_philospher_id) != 0)
         {
             perror("FAILED THREAD CREATION");
         }
@@ -67,3 +77,6 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+
+
