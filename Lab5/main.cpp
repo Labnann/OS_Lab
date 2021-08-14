@@ -11,6 +11,13 @@ private:
     string name;
     int startTime = -1;
     int arrivalTime;
+    int workingTime = 0;
+
+
+    void work(){
+        this->burstTime--;
+        this->workingTime++;
+    }
 
 
 
@@ -36,11 +43,6 @@ public:
 
 
 
-    int execute(int currentTime, int time){
-        this->burstTime = this->burstTime - time;
-        return -(time);
-    }
-
     bool done(){
         return this->burstTime<=0;
     }
@@ -51,7 +53,8 @@ public:
 
     void execute(int currentTime){
         this->startTime = (this->startTime == -1) ? currentTime : this->startTime;
-        this->burstTime = 0;
+        while(this->burstTime>0)
+        work();
     }
 
 
@@ -123,10 +126,11 @@ void executeProcess() {
     if(readyQueue.empty())
         return;
     auto process = readyQueue.front();
-    readyQueue.pop();
-    if(process != nullptr)
-    {cout<<" --> ";
     process->execute(worldTime);
-    if(process->done()) cout<<process->getName();}
+    if(process->done()) {
+        cout<<"-->";
+        cout<<process->getName();
+        readyQueue.pop();
+    }
 }
 
