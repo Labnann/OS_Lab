@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <queue>
 
 using namespace std;
 
@@ -50,15 +51,15 @@ public:
 
 
 class TaskArrival {
-    map<int, Process *> arrivalTime;
+    map<int, queue<Process *>> processQueue;
 
 public:
-    Process *getProcess(int time) {
-        return arrivalTime[time];
+    auto getProcess(int time) {
+        return processQueue[time];
     }
 
     void addProcess(int time, Process *process) {
-        arrivalTime[time] = process;
+        processQueue[time].push(process);
     }
 
 };
@@ -87,12 +88,20 @@ int main() {
     defineTasks(taskArrival);
 
     for (int worldTime = 0; worldTime < SIMULATION_TIME; worldTime++) {
-        auto process =taskArrival->getProcess(worldTime);
-        if(process== nullptr)
-            continue;
-        cout<<" --> ";
-        process->execute();
-        if(process->done()) cout<<process->getName();
+        auto processes =taskArrival->getProcess(worldTime);
+
+        while(!processes.empty()){
+            auto *process = processes.front();
+            processes.pop();
+
+            if(process== nullptr)
+                continue;
+            cout<<" --> ";
+            process->execute();
+            if(process->done()) cout<<process->getName();
+        }
+
+
 
     }
     return 0;
