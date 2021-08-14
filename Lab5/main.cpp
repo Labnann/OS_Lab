@@ -105,10 +105,12 @@ int main() {
 
         while(!processes.empty()){
             auto *process = processes.front();
+         //   if(*process==nullptr) continue;
             readyQueue.push(process);
             processes.pop();
-            executeProcess();
+
         }
+        executeProcess();
 
 
 
@@ -117,6 +119,8 @@ int main() {
 }
 
 void executeProcess() {
+    if(readyQueue.empty())
+        return;
     auto process = readyQueue.front();
     readyQueue.pop();
     if(process != nullptr)
