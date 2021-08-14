@@ -58,7 +58,7 @@ public:
 };
 
 
-class TaskArrival {
+class JobQueue {
     map<int, queue<Process *>> processQueue;
 
 public:
@@ -75,7 +75,9 @@ public:
 
 void executeProcess();
 
-void defineTasks(TaskArrival *taskArrival) {
+void propagateToReadyQueue(queue<Process *> &processes);
+
+void defineTasks(JobQueue *taskArrival) {
 
     auto* p1 = new Process(13,3,"P1",2);
     auto* p2 = new Process(1,1,"P2",0);
@@ -97,25 +99,24 @@ int worldTime = 0;
 
 
 int main() {
-    auto  *taskArrival = new TaskArrival();
-    defineTasks(taskArrival);
+    auto  *pJobQueue = new JobQueue();
+    defineTasks(pJobQueue);
 
     for ( worldTime = 0; worldTime < SIMULATION_TIME; worldTime++) {
-        auto processes =taskArrival->getProcess(worldTime);
-
-        while(!processes.empty()){
-            auto *process = processes.front();
-         //   if(*process==nullptr) continue;
-            readyQueue.push(process);
-            processes.pop();
-
-        }
+        auto processes =pJobQueue->getProcess(worldTime);
+        propagateToReadyQueue(processes);
         executeProcess();
-
-
-
     }
     return 0;
+}
+
+void propagateToReadyQueue(queue<Process *> &processes) {
+    while(!processes.empty()){
+        auto *process = processes.front();
+        readyQueue.push(process);
+        processes.pop();
+
+    }
 }
 
 void executeProcess() {
