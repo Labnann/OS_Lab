@@ -11,12 +11,17 @@ private:
     string name;
     int startTime = -1;
     int arrivalTime;
-    int workingTime = 0;
+    int lastTime = 0;
 
 
-    void work(){
+
+private:
+
+
+    void work(int currentTime){
+        int timePassed = currentTime - lastTime+1;
         this->burstTime--;
-        this->workingTime++;
+        this->lastTime += timePassed;
     }
 
 
@@ -42,6 +47,25 @@ public:
     }
 
 
+    int getFinishTime(){
+        return lastTime;
+    }
+
+
+
+    int getStartTime() const{
+        return this->startTime;
+    }
+
+    int getResponseTime(){
+        return startTime - arrivalTime;
+    }
+
+    int getWaitingTime(){
+        return startTime-arrivalTime;
+    }
+
+
 
     bool done(){
         return this->burstTime<=0;
@@ -51,10 +75,10 @@ public:
         return this->name;
     }
 
+
     void execute(int currentTime){
         this->startTime = (this->startTime == -1) ? currentTime : this->startTime;
-        while(this->burstTime>0)
-        work();
+       work(currentTime);
     }
 
 
@@ -80,29 +104,39 @@ void executeProcess();
 
 void propagateToReadyQueue(queue<Process *> &processes);
 
+void printStatus();
+
 void defineTasks(JobQueue *taskArrival) {
 
     auto* p1 = new Process(13,3,"P1",2);
-    auto* p2 = new Process(1,1,"P2",0);
-    auto* p3 = new Process(2,3,"P3",1);
-    auto* p4 = new Process(16,4,"P4",3);
-    auto* p5 = new Process(7,2,"P5",5);
-
     taskArrival->addProcess(2,p1);
+
+    auto* p2 = new Process(1,1,"P2",0);
     taskArrival->addProcess(0,p2);
+
+    auto* p3 = new Process(2,3,"P3",1);
     taskArrival->addProcess(1,p3);
+
+    auto* p4 = new Process(16,4,"P4",3);
     taskArrival->addProcess(3,p4);
+
+    auto* p5 = new Process(7,2,"P5",5);
     taskArrival->addProcess(7,p5);
+
 }
 
 #define SIMULATION_TIME 1000
 
 queue <Process*> readyQueue;
+queue <Process*> finishedQueue;
+auto  *pJobQueue = new JobQueue();
+
+
 int worldTime = 0;
 
 
 int main() {
-    auto  *pJobQueue = new JobQueue();
+
     defineTasks(pJobQueue);
 
     for ( worldTime = 0; worldTime < SIMULATION_TIME; worldTime++) {
@@ -110,7 +144,24 @@ int main() {
         propagateToReadyQueue(processes);
         executeProcess();
     }
+
+    printStatus();
+
     return 0;
+}
+
+void printStatus() {
+    while (!finishedQueue.empty()){
+        auto finished = finishedQueue.front();
+        finishedQueue.pop();
+        cout << "Process "<< finished->getName() <<":\n";
+        cout << "Start Time "<< finished->getStartTime() <<":\n";
+        cout << "Finish Time "<< finished->getFinishTime() <<":\n";
+        cout << "Response Time "<< finished->getResponseTime() <<":\n";
+        cout << "Waiting Time "<< finished->getWaitingTime() <<":\n";
+
+        cout << "\n";
+    }
 }
 
 void propagateToReadyQueue(queue<Process *> &processes) {
@@ -128,9 +179,8 @@ void executeProcess() {
     auto process = readyQueue.front();
     process->execute(worldTime);
     if(process->done()) {
-        cout<<"-->";
-        cout<<process->getName();
         readyQueue.pop();
+        finishedQueue.push(process);
     }
 }
 
