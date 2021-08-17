@@ -188,15 +188,24 @@ void propagateToReadyQueue(queue<Process *> &processes) {
     }
 }
 
+
+Process* tryPreimpt(Process* currentProcess){
+    if(readyQueue.top() != currentProcess) {
+        cout<<"-->"<<readyQueue.top()->getName();//<<" R "<<readyQueue.top()->getName();
+        currentProcess = readyQueue.top();
+    }
+    return  currentProcess;
+}
+
+Process* currentProcess = nullptr;
+
 void executeProcess() {
     if(readyQueue.empty())
         return;
-    auto process = readyQueue.top();
-    process->execute(worldTime);
-    if(process->done()) {
-        cout<<"-->"<<process->getName();
+    currentProcess = tryPreimpt(currentProcess);
+    currentProcess->execute(worldTime);
+    if(currentProcess->done()) {
         readyQueue.pop();
-        finishedQueue.push(process);
+        finishedQueue.push(currentProcess);
     }
 }
-

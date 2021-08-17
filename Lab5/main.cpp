@@ -1,4 +1,4 @@
-//SJF NP
+//SJF P
 
 #include <iostream>
 #include <map>
@@ -189,21 +189,23 @@ void propagateToReadyQueue(queue<Process *> &processes) {
 }
 
 
-Process *currentProcess = nullptr;
+Process* tryPreimpt(Process* currentProcess){
+    if(readyQueue.top() != currentProcess) {
+        cout<<"-->"<<readyQueue.top()->getName();//<<" R "<<readyQueue.top()->getName();
+        currentProcess = readyQueue.top();
+    }
+    return  currentProcess;
+}
+
+Process* currentProcess = nullptr;
 
 void executeProcess() {
-    if (readyQueue.empty() && currentProcess== nullptr)
+    if(readyQueue.empty())
         return;
-    if (currentProcess == nullptr) {
-        currentProcess = readyQueue.top();
+    currentProcess = tryPreimpt(currentProcess);
+    currentProcess->execute(worldTime);
+    if(currentProcess->done()) {
         readyQueue.pop();
-    }
-
-    auto process = currentProcess;
-    process->execute(worldTime);
-    if (process->done()) {
-        cout << "-->" << process->getName();
-        finishedQueue.push(process);
-        currentProcess = nullptr;
+        finishedQueue.push(currentProcess);
     }
 }
