@@ -1,3 +1,4 @@
+
 //PS P
 
 #include <iostream>
@@ -186,7 +187,7 @@ void propagateToReadyQueue(queue<Process *> &processes) {
 
 Process* tryPreimpt(Process* currentProcess){
     if(readyQueue.top() != currentProcess) {
-      cout<<"-->"<<readyQueue.top()->getName();//<<" R "<<readyQueue.top()->getName();
+        cout<<"-->"<<readyQueue.top()->getName();//<<" R "<<readyQueue.top()->getName();
         currentProcess = readyQueue.top();
     }
     return  currentProcess;

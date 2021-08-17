@@ -1,4 +1,4 @@
-//SJF NP
+//SJF P
 
 #include <iostream>
 #include <map>
