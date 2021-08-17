@@ -1,7 +1,9 @@
-//FCFS
+//SJF NP
+
 #include <iostream>
 #include <map>
 #include <queue>
+
 
 using namespace std;
 
@@ -86,6 +88,8 @@ public:
 };
 
 
+
+
 class JobQueue {
     map<int, queue<Process *>> processQueue;
 
@@ -126,9 +130,18 @@ void defineTasks(JobQueue *taskArrival) {
 
 }
 
+struct LessBurst
+{
+    bool operator()(const Process * lhs, const Process * rhs) const
+    {
+        return lhs->getBurstTime() > rhs->getBurstTime();
+    }
+};
+
+
 #define SIMULATION_TIME 1000
 
-queue <Process*> readyQueue;
+priority_queue <Process*, vector<Process*>, LessBurst>  readyQueue;
 queue <Process*> finishedQueue;
 auto  *pJobQueue = new JobQueue();
 
@@ -155,13 +168,14 @@ void printStatus() {
     while (!finishedQueue.empty()){
         auto finished = finishedQueue.front();
         finishedQueue.pop();
+
+        cout << "\n";
         cout << "Process "<< finished->getName() <<":\n";
         cout << "Start Time "<< finished->getStartTime() <<":\n";
         cout << "Finish Time "<< finished->getFinishTime() <<":\n";
         cout << "Response Time "<< finished->getResponseTime() <<":\n";
         cout << "Waiting Time "<< finished->getWaitingTime() <<":\n";
 
-        cout << "\n";
     }
 }
 
@@ -177,9 +191,10 @@ void propagateToReadyQueue(queue<Process *> &processes) {
 void executeProcess() {
     if(readyQueue.empty())
         return;
-    auto process = readyQueue.front();
+    auto process = readyQueue.top();
     process->execute(worldTime);
     if(process->done()) {
+        cout<<"-->"<<process->getName();
         readyQueue.pop();
         finishedQueue.push(process);
     }
