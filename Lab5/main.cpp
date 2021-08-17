@@ -1,4 +1,5 @@
-//FCFS
+//RR
+
 #include <iostream>
 #include <map>
 #include <queue>
@@ -63,7 +64,7 @@ public:
     }
 
     int getWaitingTime() {
-        return this->waitingTime-arrivalTime;
+        return this->waitingTime - arrivalTime;
     }
 
 
@@ -133,7 +134,6 @@ struct HighPriority {
 
 #define SIMULATION_TIME 1000
 
-
 queue <Process*> readyQueue;
 queue <Process*> finishedQueue;
 auto  *pJobQueue = new JobQueue();
@@ -168,6 +168,7 @@ void printStatus() {
         cout << "Response Time "<< finished->getResponseTime() <<":\n";
         cout << "Waiting Time "<< finished->getWaitingTime() <<":\n";
 
+
     }
 }
 
@@ -180,13 +181,29 @@ void propagateToReadyQueue(queue<Process *> &processes) {
     }
 }
 
+int serveCount = 0;
+
+Process* tryCircleProcess(){
+
+    if(serveCount%4 == 3){
+        cout<<" --> " <<readyQueue.front()->getName();
+        readyQueue.push(readyQueue.front());
+        readyQueue.pop();
+    }
+    serveCount++;
+    Process* estimatedNewProcess = readyQueue.front();
+    return estimatedNewProcess;
+}
+
 void executeProcess() {
     if(readyQueue.empty())
         return;
-    auto process = readyQueue.front();
+    auto process = tryCircleProcess();
     process->execute(worldTime);
+
+
     if(process->done()) {
-        cout<<" --> "<< process->getName();
+        serveCount =0;
         readyQueue.pop();
         finishedQueue.push(process);
     }

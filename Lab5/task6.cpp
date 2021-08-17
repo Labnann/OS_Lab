@@ -203,6 +203,7 @@ void executeProcess() {
 
 
     if(process->done()) {
+        serveCount =0;
         readyQueue.pop();
         finishedQueue.push(process);
     }
