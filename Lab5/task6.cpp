@@ -64,7 +64,7 @@ public:
     }
 
     int getWaitingTime() {
-        return this->waitingTime;
+        return this->waitingTime - arrivalTime;
     }
 
 

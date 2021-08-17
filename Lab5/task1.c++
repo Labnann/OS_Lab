@@ -3,6 +3,7 @@
 #include <map>
 #include <queue>
 
+
 using namespace std;
 
 class Process {
@@ -13,18 +14,18 @@ private:
     int startTime = -1;
     int arrivalTime;
     int lastTime = 0;
-
+    int waitingTime = 0;
 
 
 private:
 
 
-    void work(int currentTime){
-        int timePassed = currentTime - lastTime+1;
+    void work(int currentTime) {
+        int timePassed = currentTime - lastTime;
         this->burstTime--;
-        this->lastTime += timePassed;
+        this->lastTime += timePassed+1;
+        this->waitingTime+= timePassed;
     }
-
 
 
 public:
@@ -32,8 +33,8 @@ public:
         return priority;
     }
 
-    int getArrivalTime(){
-        return  this->arrivalTime;
+    int getArrivalTime() {
+        return this->arrivalTime;
     }
 
     Process(int burstTime, int priority, string name, int arrivalTime) {
@@ -48,36 +49,34 @@ public:
     }
 
 
-    int getFinishTime(){
+    int getFinishTime() {
         return lastTime;
     }
 
 
-
-    int getStartTime() const{
+    int getStartTime() const {
         return this->startTime;
     }
 
-    int getResponseTime(){
+    int getResponseTime() {
         return startTime - arrivalTime;
     }
 
-    int getWaitingTime(){
-        return startTime-arrivalTime;
+    int getWaitingTime() {
+        return this->waitingTime-arrivalTime;
     }
 
 
-
-    bool done(){
-        return this->burstTime<=0;
+    bool done() {
+        return this->burstTime <= 0;
     }
 
-    string getName(){
+    string getName() {
         return this->name;
     }
 
 
-    void execute(int currentTime){
+    void execute(int currentTime) {
         this->startTime = (this->startTime == -1) ? currentTime : this->startTime;
         work(currentTime);
     }
@@ -109,24 +108,31 @@ void printStatus();
 
 void defineTasks(JobQueue *taskArrival) {
 
-    auto* p1 = new Process(13,3,"P1",2);
-    taskArrival->addProcess(2,p1);
+    auto *p1 = new Process(13, 3, "P1", 2);
+    taskArrival->addProcess(2, p1);
 
-    auto* p2 = new Process(1,1,"P2",0);
-    taskArrival->addProcess(0,p2);
+    auto *p2 = new Process(1, 1, "P2", 0);
+    taskArrival->addProcess(0, p2);
 
-    auto* p3 = new Process(2,3,"P3",1);
-    taskArrival->addProcess(1,p3);
+    auto *p3 = new Process(2, 3, "P3", 1);
+    taskArrival->addProcess(1, p3);
 
-    auto* p4 = new Process(16,4,"P4",3);
-    taskArrival->addProcess(3,p4);
+    auto *p4 = new Process(16, 4, "P4", 3);
+    taskArrival->addProcess(3, p4);
 
-    auto* p5 = new Process(7,2,"P5",5);
-    taskArrival->addProcess(7,p5);
+    auto *p5 = new Process(7, 2, "P5", 5);
+    taskArrival->addProcess(7, p5);
 
 }
 
+struct HighPriority {
+    bool operator()(const Process *lhs, const Process *rhs) const {
+        return lhs->getPriority() > rhs->getPriority();
+    }
+};
+
 #define SIMULATION_TIME 1000
+
 
 queue <Process*> readyQueue;
 queue <Process*> finishedQueue;
@@ -155,13 +161,13 @@ void printStatus() {
     while (!finishedQueue.empty()){
         auto finished = finishedQueue.front();
         finishedQueue.pop();
+        cout << "\n";
         cout << "Process "<< finished->getName() <<":\n";
         cout << "Start Time "<< finished->getStartTime() <<":\n";
         cout << "Finish Time "<< finished->getFinishTime() <<":\n";
         cout << "Response Time "<< finished->getResponseTime() <<":\n";
         cout << "Waiting Time "<< finished->getWaitingTime() <<":\n";
 
-        cout << "\n";
     }
 }
 
@@ -180,6 +186,7 @@ void executeProcess() {
     auto process = readyQueue.front();
     process->execute(worldTime);
     if(process->done()) {
+        cout<<" --> "<< process->getName();
         readyQueue.pop();
         finishedQueue.push(process);
     }
