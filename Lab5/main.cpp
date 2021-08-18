@@ -1,4 +1,4 @@
-//RR
+//MFQ
 
 #include <iostream>
 #include <map>
@@ -182,6 +182,11 @@ void propagateToReadyQueue(queue<Process *> &processes) {
 }
 
 int serveCount = 0;
+
+queue <Process*> slowerQueue;
+queue <Process*> fcfsQueue;
+
+
 
 Process* tryCircleProcess(){
 
