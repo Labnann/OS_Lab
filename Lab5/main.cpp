@@ -88,9 +88,11 @@ public:
 
 class JobQueue {
     map<int, queue<Process *>> processQueue;
+    queue<Process*> dummy;
 
 public:
-    auto getProcess(int time) {
+    queue<Process*> getProcess(int time) {
+        if(processQueue.count(time)<=0) return dummy;
         return processQueue[time];
     }
 
@@ -106,6 +108,10 @@ void executeProcess();
 void propagateToReadyQueue(queue<Process *> &processes);
 
 void printStatus();
+
+void handleDone(Process *process);
+
+Process *getFromFasterQueue();
 
 void defineTasks(JobQueue *taskArrival) {
 
@@ -134,7 +140,7 @@ struct HighPriority {
 
 #define SIMULATION_TIME 1000
 
-queue <Process*> readyQueue;
+queue <Process*> fasterQueue;
 queue <Process*> finishedQueue;
 auto  *pJobQueue = new JobQueue();
 
@@ -148,6 +154,7 @@ int main() {
 
     for ( worldTime = 0; worldTime < SIMULATION_TIME; worldTime++) {
         auto processes =pJobQueue->getProcess(worldTime);
+        if(!processes.empty())
         propagateToReadyQueue(processes);
         executeProcess();
     }
@@ -175,7 +182,7 @@ void printStatus() {
 void propagateToReadyQueue(queue<Process *> &processes) {
     while(!processes.empty()){
         auto *process = processes.front();
-        readyQueue.push(process);
+        fasterQueue.push(process);
         processes.pop();
 
     }
@@ -188,28 +195,52 @@ queue <Process*> fcfsQueue;
 
 
 
-Process* tryCircleProcess(){
-
-    if(serveCount%4 == 3){
-        cout<<" --> " <<readyQueue.front()->getName();
-        readyQueue.push(readyQueue.front());
-        readyQueue.pop();
+Process* tryCircleProcess(int quanta, queue <Process*> *current, queue <Process*> *next){
+    if(current->empty()) return nullptr;
+    if(serveCount%quanta == quanta-1){
+        cout<<" --> " <<current->front()->getName();
+        next->push(current->front());
+        current->pop();
     }
     serveCount++;
-    Process* estimatedNewProcess = readyQueue.front();
+    Process* estimatedNewProcess = current->empty()? nullptr:current->front();
     return estimatedNewProcess;
 }
 
+Process *getFromSlowerQueue() {
+    auto process = tryCircleProcess(8, &slowerQueue, &fcfsQueue);
+    return process;
+}
+
+
+
+Process *getFromFCFSQueue() {
+    auto process = fcfsQueue.front();
+    return process;
+}
+
 void executeProcess() {
-    if(readyQueue.empty())
+    if(fasterQueue.empty() && slowerQueue.empty() && fcfsQueue.empty())
         return;
-    auto process = tryCircleProcess();
+    Process *process = getFromFasterQueue();
+    if(process == nullptr)
+        process = getFromSlowerQueue();
+    if(process == nullptr)
+        process = getFromFCFSQueue();
     process->execute(worldTime);
+    handleDone(process);
+}
+
+Process *getFromFasterQueue() {
+    auto process = tryCircleProcess(4, &fasterQueue, &slowerQueue);
+    return process;
+}
 
 
+void handleDone(Process *process) {
     if(process->done()) {
         serveCount =0;
-        readyQueue.pop();
+        fasterQueue.pop();
         finishedQueue.push(process);
     }
 }
